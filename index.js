@@ -19,11 +19,12 @@ const port = process.env.PORT;
 dbConnect();
 app.use(express.json());
 // ***********//
+const applicationRoutes = require("./routes/registerRoutes");
 app.listen(port, () => {
   console.log(`app listening on port ${port}`);
 });
 //routes
-
+app.use("/api/register", applicationRoutes);
 //Gestion des erreurs
 app.use(notFound);
 app.use(globalErrHandler);
