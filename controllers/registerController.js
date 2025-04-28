@@ -1,5 +1,4 @@
 const Register = require("../models/registerModel");
-
 // POST /api/register
 const createApplication = async (req, res) => {
   if (!req.files) {

@@ -20,11 +20,15 @@ dbConnect();
 app.use(express.json());
 // ***********//
 const applicationRoutes = require("./routes/registerRoutes");
+const userRoutes = require("./routes/userRoutes");
+const authRoutes = require("./routes/authRoutes");
 app.listen(port, () => {
   console.log(`app listening on port ${port}`);
 });
 //routes
 app.use("/api/register", applicationRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/auth", authRoutes);
 //Gestion des erreurs
 app.use(notFound);
 app.use(globalErrHandler);

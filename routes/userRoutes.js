@@ -1,0 +1,10 @@
+const asyncHandler = require("express-async-handler");
+const express = require("express");
+const userRoutes = express.Router();
+const userContollers = require("../controllers/userControllers");
+userRoutes.get("/", asyncHandler(userContollers.getAllUsers));
+userRoutes.get("/:id", userContollers.getUserById);
+userRoutes.post("/register", asyncHandler(userContollers.createUser));
+userRoutes.put("/update/:id", asyncHandler(userContollers.updateUser));
+userRoutes.delete("/delete/:id", userContollers.deleteUser);
+module.exports = userRoutes;
