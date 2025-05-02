@@ -45,6 +45,7 @@ async function login(req, res) {
       status: "success",
       message: "User logged in successfully",
       refreshToken,
+      role: userFound.role,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

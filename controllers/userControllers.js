@@ -2,8 +2,7 @@ const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const createUser = async (req, res) => {
   try {
-    const { lastName, firstName, email, password } = req.body;
-    const role = "admin";
+    const { lastName, firstName, email, password, role } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
