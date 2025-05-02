@@ -127,6 +127,16 @@ const registerSchema = new mongoose.Schema(
       publicId: { type: String, required: true },
       type: { type: String, required: true },
     },
+    photo: {
+      url: { type: String, required: true },
+      publicId: { type: String, required: true },
+      type: { type: String, required: true },
+    },
+    gradeTranscript: {
+      url: { type: String, required: true },
+      publicId: { type: String, required: true },
+      type: { type: String, required: true },
+    },
     // Confirmation
     acceptConditions: { type: Boolean, default: false },
   },

@@ -55,6 +55,8 @@ const uploadFile = upload.fields([
   { name: "degree", maxCount: 1 },
   { name: "birthCertificate", maxCount: 1 },
   { name: "certificateOfResidence", maxCount: 1 },
+  { name: "photo", maxCount: 1 },
+  { name: "gradeTranscript", maxCount: 1 },
 ]);
 
 module.exports = {

@@ -17,12 +17,16 @@ async function login(req, res) {
     const userFound = await User.findOne({ email }).select("+password");
 
     if (!userFound) {
-      return res.status(404).json({ message: "Incorrect password or email" });
+      return res
+        .status(404)
+        .json({ message: "Mot de passe ou adresse e-mail incorrecte" });
     }
     // Vérifier le mot de passe
     const isMatch = await bcrypt.compare(password, userFound.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Incorrect password or email" });
+      return res
+        .status(400)
+        .json({ message: "Mot de passe ou adresse e-mail incorrecte" });
     }
     const refreshToken = generateRefreshToken(userFound._id);
     userFound.refreshToken = refreshToken;
