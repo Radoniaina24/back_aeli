@@ -101,6 +101,11 @@ const registerSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    status: {
+      type: String,
+      required: true,
+      enum: ["approved", "unapproved"],
+    },
     // Documents
     cv: {
       url: { type: String, required: true },

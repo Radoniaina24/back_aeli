@@ -11,9 +11,11 @@ applicationRouter.post(
 );
 // Obternir tous les candidatures
 applicationRouter.get("/", applicationController.getAllApplication);
-// Obternir un  candidature pas son Id
+// Obternir un  candidature par son Id
 applicationRouter.get("/:id", applicationController.getApplicationById);
-// Supprimer un  candidature pas son Id
+// Supprimer un  candidature par son Id
 applicationRouter.delete("/:id", applicationController.deleteApplication);
+// modifier un  candidature par son Id
+applicationRouter.put("/:id", applicationController.updateApplication);
 
 module.exports = applicationRouter;

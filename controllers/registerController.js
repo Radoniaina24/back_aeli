@@ -8,6 +8,7 @@ const createApplication = async (req, res) => {
       .json({ message: "Veuillez télécharger les fichiers requis." });
   }
   const uploadedFiles = {};
+  const status = "unapproved";
   Object.keys(req.files).forEach((key) => {
     uploadedFiles[key] = {
       url: req.files[key][0].path,
@@ -76,6 +77,7 @@ const createApplication = async (req, res) => {
       certificateOfResidence: uploadedFiles.certificateOfResidence,
       photo: uploadedFiles.photo,
       gradeTranscript: uploadedFiles.gradeTranscript,
+      status,
     });
 
     await newApplication.save();
@@ -94,23 +96,33 @@ const createApplication = async (req, res) => {
 // Get /api/register
 const getAllApplication = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search } = req.query;
-    const searchQuery = search
-      ? {
-          name: { $regex: search, $options: "i" }, // Supposons que "name" soit le champ à rechercher
-        }
-      : {};
+    const { page = 1, limit = 10, search, status, sort } = req.query;
+    // Construction dynamique des filtres
+    const filters = {};
 
-    const totalApplications = await Register.countDocuments(searchQuery);
+    if (search) {
+      filters.$or = [
+        { lastName: { $regex: search, $options: "i" } },
+        {
+          firstName: { $regex: search, $options: "i" },
+        },
+      ];
+    }
+    if (status && status !== "all") {
+      filters.status = status;
+    }
+    const sortOption = sort === "asc" ? 1 : -1;
+
+    const totalApplications = await Register.countDocuments(filters);
     const totalPages = Math.ceil(totalApplications / limit);
 
-    const applications = await Register.find(searchQuery)
-      .sort({ name: 1 }) // Tri par date de création décroissante
-      .skip((page - 1) * limit)
-      .limit(limit);
+    const applications = await Register.find(filters).sort({
+      createdAt: sortOption,
+    }); // Tri par date de création décroissante
+    // .skip((page - 1) * limit)
+    // .limit(limit);
 
     res.status(200).json({
-      status: "success",
       totalApplications,
       totalPages,
       currentPage: parseInt(page),
@@ -186,10 +198,32 @@ const deleteApplication = async (req, res) => {
     res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
+// Update by id /api/regiter/id
+const updateApplication = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const { id } = req.params;
+
+    const register = await Register.findById(id);
+    if (!register) {
+      return res.status(404).json({ message: "Candidat non trouvée" });
+    }
+
+    register.status = status || register.status;
+    await register.save();
+    res
+      .status(200)
+      .json({ message: "Status mise à jour avec succès", register });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
 
 module.exports = {
   createApplication,
   getAllApplication,
   getApplicationById,
   deleteApplication,
+  updateApplication,
 };
