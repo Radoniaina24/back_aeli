@@ -79,9 +79,7 @@ const createApplication = async (req, res) => {
       gradeTranscript: uploadedFiles.gradeTranscript,
       status,
     });
-
     await newApplication.save();
-
     return res.status(201).json({
       message: "Candidature soumise avec succès.",
       applicationId: newApplication._id,
@@ -116,11 +114,12 @@ const getAllApplication = async (req, res) => {
     const totalApplications = await Register.countDocuments(filters);
     const totalPages = Math.ceil(totalApplications / limit);
 
-    const applications = await Register.find(filters).sort({
-      createdAt: sortOption,
-    }); // Tri par date de création décroissante
-    // .skip((page - 1) * limit)
-    // .limit(limit);
+    const applications = await Register.find(filters)
+      .sort({
+        createdAt: sortOption,
+      })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
     res.status(200).json({
       totalApplications,
