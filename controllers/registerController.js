@@ -1,5 +1,6 @@
 const Register = require("../models/registerModel");
 const cloudinary = require("cloudinary").v2;
+const User = require("../models/userModel");
 // POST /api/register
 const createApplication = async (req, res) => {
   if (!req.files) {
@@ -210,6 +211,20 @@ const updateApplication = async (req, res) => {
 
     register.status = status || register.status;
     await register.save();
+    //create new user
+    const role = "student";
+    if (register.status === "approved") {
+      const user = new User({
+        lastName: register.lastName,
+        firstName: register.firstName,
+        email: register.emailAddress,
+        password: "123456789a",
+        role,
+        student: register._id,
+      });
+      await user.save();
+    }
+
     res
       .status(200)
       .json({ message: "Status mise à jour avec succès", register });

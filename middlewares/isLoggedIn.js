@@ -12,7 +12,10 @@ async function isLoggedIn(req, res, next) {
       return res.status(401).json({ message: "Accès refusé, token manquant" });
     }
     const decoded = verifyToken(token);
-    const user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(decoded.id).select("-password").populate({
+      path: "student",
+      select: "photo studyPeriod ",
+    });
     // console.log(user);
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });

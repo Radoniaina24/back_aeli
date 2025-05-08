@@ -29,8 +29,13 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "student"],
+      enum: ["super_admin", "admin", "student"],
       required: true,
+    },
+    student: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Register",
+      required: false,
     },
   },
   { timestamps: true }

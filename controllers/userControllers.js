@@ -2,7 +2,7 @@ const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const createUser = async (req, res) => {
   try {
-    const { lastName, firstName, email, password, role } = req.body;
+    const { lastName, firstName, email, password, role, student } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
@@ -15,6 +15,7 @@ const createUser = async (req, res) => {
       email,
       password,
       role,
+      student,
     });
     await user.save();
     res.status(201).json({ message: "Utilisateur créé avec succès", user });
@@ -37,6 +38,10 @@ const getAllUsers = async (req, res) => {
     const totalUsers = await User.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalUsers / limit);
     const users = await User.find(searchQuery)
+      .populate({
+        path: "student",
+        select: "photo studyPeriod ",
+      })
       .select("-password")
       .skip((page - 1) * limit)
       .limit(limit);
