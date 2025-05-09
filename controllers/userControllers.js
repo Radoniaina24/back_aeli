@@ -45,7 +45,53 @@ const getAllUsers = async (req, res) => {
       .select("-password")
       .skip((page - 1) * limit)
       .limit(limit);
-    res.status(200).json({ status: "success", totalUsers, totalPages, users });
+    res.status(200).json({
+      status: "success",
+      totalUsers,
+      totalPages,
+      users,
+      currentPage: parseInt(page),
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+const getAllUsersCandidate = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search, status } = req.query;
+    const filters = {};
+    if (search) {
+      filters.$or = [
+        { lastName: { $regex: search, $options: "i" } },
+        {
+          firstName: { $regex: search, $options: "i" },
+        },
+      ];
+    }
+    const role = "student";
+    if (role) {
+      filters.role = role;
+    }
+    if (status && status !== "all") {
+      filters.status = status;
+    }
+    const totalUsers = await User.countDocuments(filters);
+    const totalPages = Math.ceil(totalUsers / limit);
+    const users = await User.find(filters)
+      .populate({
+        path: "student",
+        select: "photo studyPeriod funding phoneNumber",
+      })
+      .select("-password")
+      .skip((page - 1) * limit)
+      .limit(limit);
+    res.status(200).json({
+      status: "success",
+      totalUsers,
+      totalPages,
+      users,
+      currentPage: parseInt(page),
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -96,10 +142,32 @@ const deleteUser = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+// Update by id /api/user/candidate/id
+const updateUserCandidate = async (req, res) => {
+  try {
+    const { status, schoolFees } = req.body;
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvée" });
+    }
+
+    user.status = status || user.status;
+    user.schoolFees = schoolFees || user.schoolFees;
+    await user.save();
+    res.status(200).json({ message: "Status mise à jour avec succès", user });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
 module.exports = {
   createUser,
   getAllUsers,
   getUserById,
   updateUser,
   deleteUser,
+  getAllUsersCandidate,
+  updateUserCandidate,
 };

@@ -221,6 +221,7 @@ const updateApplication = async (req, res) => {
         password: "123456789a",
         role,
         student: register._id,
+        status: "unpaid",
       });
       await user.save();
     }
