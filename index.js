@@ -6,10 +6,21 @@ const { globalErrHandler, notFound } = require("./middlewares/globaErrHandler");
 const path = require("path");
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://aeli-madagascar.vercel.app",
+];
+
 const corsOptions = {
-  origin: "https://aeli-madagascar.vercel.app",
-  //http://localhost:3000 https://aeli-madagascar.vercel.app
-  credentials: true, // Permet d'envoyer des cookies
+  origin: function (origin, callback) {
+    // autoriser les requêtes sans origin (comme Postman) ou celles venant d'une origine valide
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
