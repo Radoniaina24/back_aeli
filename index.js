@@ -7,8 +7,8 @@ const path = require("path");
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 const corsOptions = {
-  origin: "https://aeli-madagascar.vercel.app/",
-  //http://localhost:3000 https://aeli-madagascar.vercel.app/
+  origin: "https://aeli-madagascar.vercel.app",
+  //http://localhost:3000 https://aeli-madagascar.vercel.app
   credentials: true, // Permet d'envoyer des cookies
   allowedHeaders: ["Content-Type", "Authorization"],
   methods: ["GET", "POST", "PUT", "DELETE"],
