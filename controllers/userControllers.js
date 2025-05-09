@@ -1,5 +1,6 @@
 const Register = require("../models/registerModel");
 const User = require("../models/userModel");
+const cloudinary = require("cloudinary").v2;
 const bcrypt = require("bcrypt");
 const createUser = async (req, res) => {
   try {
