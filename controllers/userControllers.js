@@ -1,3 +1,4 @@
+const Register = require("../models/registerModel");
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const createUser = async (req, res) => {
@@ -162,6 +163,60 @@ const updateUserCandidate = async (req, res) => {
     res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
+const deleteUserCandidate = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvée" });
+    }
+    const register_id = user.student._id;
+    const register = await Register.findById(register_id);
+    if (!register) {
+      return res.status(404).json({ message: "Candidature non trouvée" });
+    }
+    // Suppression du fichier dans cloudinary
+    const resourceType = register.cv.type === "pdf" ? "raw" : "image";
+    //suppression du CV
+    await cloudinary.uploader.destroy(register.cv.publicId, {
+      resource_type: resourceType,
+    });
+    //suppression du CIN
+    await cloudinary.uploader.destroy(register.cin.publicId, {
+      resource_type: resourceType,
+    });
+    //suppression du diplôme
+    await cloudinary.uploader.destroy(register.degree.publicId, {
+      resource_type: resourceType,
+    });
+    //suppression du bulletin de naissance
+    await cloudinary.uploader.destroy(register.birthCertificate.publicId, {
+      resource_type: resourceType,
+    });
+    //suppression du certificat de résidence
+    await cloudinary.uploader.destroy(
+      register.certificateOfResidence.publicId,
+      {
+        resource_type: resourceType,
+      }
+    );
+    //suppression du photo
+    await cloudinary.uploader.destroy(register.photo.publicId, {
+      resource_type: "image",
+    });
+    //suppression du relevé de notes
+    await cloudinary.uploader.destroy(register.gradeTranscript.publicId, {
+      resource_type: resourceType,
+    });
+    // Suppression du Candidature
+    await Register.deleteOne({ _id: id });
+    // Suppression du Candidature
+    await User.deleteOne({ _id: user._id });
+
+    res.status(200).json({ message: "Utilisateur supprimé avec succès" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 module.exports = {
   createUser,
   getAllUsers,
@@ -170,4 +225,5 @@ module.exports = {
   deleteUser,
   getAllUsersCandidate,
   updateUserCandidate,
+  deleteUserCandidate,
 };

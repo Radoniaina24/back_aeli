@@ -27,4 +27,10 @@ userRoutes.put(
   asyncHandler(userContollers.updateUserCandidate)
 );
 userRoutes.delete("/delete/:id", userContollers.deleteUser);
+userRoutes.delete(
+  "/candidate/:id",
+  isLoggedIn,
+  checkRole(["super_admin"]),
+  asyncHandler(userContollers.deleteUserCandidate)
+);
 module.exports = userRoutes;
