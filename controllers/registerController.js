@@ -158,37 +158,34 @@ const deleteApplication = async (req, res) => {
 
     // Suppression du fichier dans cloudinary
     const resourceType = application.cv.type === "pdf" ? "raw" : "image";
-    //suppression du CV
-    await cloudinary.uploader.destroy(application.cv.publicId, {
-      resource_type: resourceType,
-    });
-    //suppression du CIN
-    await cloudinary.uploader.destroy(application.cin.publicId, {
-      resource_type: resourceType,
-    });
-    //suppression du diplôme
-    await cloudinary.uploader.destroy(application.degree.publicId, {
-      resource_type: resourceType,
-    });
-    //suppression du bulletin de naissance
-    await cloudinary.uploader.destroy(application.birthCertificate.publicId, {
-      resource_type: resourceType,
-    });
-    //suppression du certificat de résidence
-    await cloudinary.uploader.destroy(
-      application.certificateOfResidence.publicId,
-      {
-        resource_type: resourceType,
+    const documentsToDelete = [
+      { key: "cv", type: resourceType },
+      { key: "cin", type: resourceType },
+      { key: "degree", type: resourceType },
+      { key: "birthCertificate", type: resourceType },
+      { key: "certificateOfResidence", type: resourceType },
+      { key: "photo", type: "image" },
+      { key: "gradeTranscript", type: resourceType },
+    ];
+
+    for (const doc of documentsToDelete) {
+      const file = application[doc.key];
+      if (file?.publicId) {
+        try {
+          await cloudinary.uploader.destroy(file.publicId, {
+            resource_type: doc.type,
+          });
+          console.log(`✅ ${doc.key} supprimé avec succès.`);
+        } catch (error) {
+          console.error(
+            `❌ Erreur lors de la suppression de ${doc.key} :`,
+            error
+          );
+        }
+      } else {
+        console.warn(`⚠️ Aucun fichier trouvé pour ${doc.key}.`);
       }
-    );
-    //suppression du photo
-    await cloudinary.uploader.destroy(application.photo.publicId, {
-      resource_type: "image",
-    });
-    //suppression du relevé de notes
-    await cloudinary.uploader.destroy(application.gradeTranscript.publicId, {
-      resource_type: resourceType,
-    });
+    }
     // Suppression du Candidature
     await Register.deleteOne({ _id: id });
 
