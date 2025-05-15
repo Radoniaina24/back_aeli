@@ -25,26 +25,46 @@ const createUser = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+//obtenir tout les utilisateurs différent de role student
 const getAllUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search } = req.query;
-    const searchQuery = search
-      ? {
-          $or: [
-            { lastName: { $regex: search, $options: "i" } },
-            { firstName: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-          ],
-        }
-      : {};
-    const totalUsers = await User.countDocuments(searchQuery);
+    const { page = 1, limit = 10, search, role } = req.query;
+    const filters = {};
+    const allowedRoles = ["admin", "super_admin"];
+
+    if (role && role !== "all") {
+      const requestedRoles = role
+        .split(",")
+        .map((r) => r.trim())
+        .filter((r) => allowedRoles.includes(r));
+
+      if (requestedRoles.length > 0) {
+        filters.role = { $in: requestedRoles };
+      } else {
+        // Si aucun rôle valide fourni, retourner une erreur ou ignorer
+        return res.status(400).json({
+          message:
+            "Rôle invalide. Seuls 'admin' ou 'super_admin' sont autorisés.",
+        });
+      }
+    } else {
+      // Par défaut, on affiche les deux
+      filters.role = { $in: allowedRoles };
+    }
+
+    if (search) {
+      filters.$or = [
+        { lastName: { $regex: search, $options: "i" } },
+        {
+          firstName: { $regex: search, $options: "i" },
+        },
+      ];
+    }
+
+    const totalUsers = await User.countDocuments(filters);
     const totalPages = Math.ceil(totalUsers / limit);
-    const users = await User.find(searchQuery)
-      .populate({
-        path: "student",
-        select: "photo studyPeriod ",
-      })
-      .select("-password")
+    const users = await User.find(filters)
+      .select("-status -schoolFees")
       .skip((page - 1) * limit)
       .limit(limit);
     res.status(200).json({
@@ -58,6 +78,7 @@ const getAllUsers = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+//obtenir tout les utilisateurs role student seulement
 const getAllUsersCandidate = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, status } = req.query;
@@ -109,11 +130,12 @@ const getUserById = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+//modifier tout les utilisateurs différent de role student
 const updateUser = async (req, res) => {
   try {
-    const { lastName, firstName, email, password } = req.body;
+    const { lastName, firstName, email, password, role } = req.body;
     // Création d'un objet updateData contenant uniquement les champs valides
-    const updateData = { lastName, firstName, email };
+    const updateData = { lastName, firstName, email, role };
 
     // Si un mot de passe est fourni, on le hash avant la mise à jour
     if (password) {

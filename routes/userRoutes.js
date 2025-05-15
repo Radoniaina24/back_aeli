@@ -18,15 +18,30 @@ userRoutes.get(
   asyncHandler(userContollers.getAllUsersCandidate)
 );
 userRoutes.get("/:id", userContollers.getUserById);
-userRoutes.post("/register", asyncHandler(userContollers.createUser));
-userRoutes.put("/update/:id", asyncHandler(userContollers.updateUser));
+userRoutes.post(
+  "/register",
+  isLoggedIn,
+  checkRole(["super_admin"]),
+  asyncHandler(userContollers.createUser)
+);
+userRoutes.put(
+  "/update/:id",
+  isLoggedIn,
+  checkRole(["super_admin"]),
+  asyncHandler(userContollers.updateUser)
+);
 userRoutes.put(
   "/update/candidate/:id",
   isLoggedIn,
   checkRole(["admin", "super_admin"]),
   asyncHandler(userContollers.updateUserCandidate)
 );
-userRoutes.delete("/delete/:id", userContollers.deleteUser);
+userRoutes.delete(
+  "/delete/:id",
+  isLoggedIn,
+  checkRole(["super_admin"]),
+  userContollers.deleteUser
+);
 userRoutes.delete(
   "/candidate/:id",
   isLoggedIn,
