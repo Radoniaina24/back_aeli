@@ -86,7 +86,7 @@ const createApplication = async (req, res) => {
       applicationId: newApplication._id,
     });
   } catch (error) {
-    console.error("Erreur lors de la soumission de candidature :", error);
+    // console.error("Erreur lors de la soumission de candidature :", error);
     return res
       .status(500)
       .json({ message: "Une erreur interne s'est produite." });

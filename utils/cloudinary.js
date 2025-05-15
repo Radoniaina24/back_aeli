@@ -59,7 +59,10 @@ const uploadFile = upload.fields([
   { name: "gradeTranscript", maxCount: 1 },
 ]);
 
+const uploadFileCours = upload.fields([{ name: "file", maxCount: 1 }]);
+
 module.exports = {
   uploadStudentPhoto,
   uploadFile,
+  uploadFileCours,
 };

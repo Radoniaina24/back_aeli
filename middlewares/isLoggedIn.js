@@ -14,7 +14,7 @@ async function isLoggedIn(req, res, next) {
     const decoded = verifyToken(token);
     const user = await User.findById(decoded.id).select("-password").populate({
       path: "student",
-      select: "photo studyPeriod funding ",
+      select: "photo studyPeriod funding program",
     });
     // console.log(user);
     if (!user) {
