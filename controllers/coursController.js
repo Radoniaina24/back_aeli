@@ -9,10 +9,10 @@ const getAllCours = async (req, res) => {
     const { level, year, semester, track, page = 1, limit = 10 } = req.query;
     const filter = {};
     // Appliquer les filtres s'ils sont fournis
-    if (level) filter.level = level;
-    if (year) filter.year = year;
-    if (semester) filter.semester = semester;
-    if (track) filter.track = track;
+    if (level && level !== "all") filter.level = level;
+    if (year && year !== "all") filter.year = year;
+    if (semester && semester !== "all") filter.semester = semester;
+    if (track && track !== "all") filter.track = track;
     // Exécuter la requête avec pagination
     const cours = await Cours.find(filter)
       .sort({ createdAt: -1 })
@@ -21,10 +21,11 @@ const getAllCours = async (req, res) => {
       .exec();
 
     // Obtenir le nombre total de documents pour la pagination
-    const count = await Cours.countDocuments(filter);
+    const totalCours = await Cours.countDocuments(filter);
     res.status(200).json({
+      totalCours,
       cours,
-      totalPages: Math.ceil(count / limit),
+      totalPages: Math.ceil(totalCours / limit),
       currentPage: page,
     });
   } catch (error) {
@@ -124,7 +125,7 @@ const updateCours = async (req, res) => {
     }
 
     // Gérer la mise à jour du fichier si un nouveau est fourni
-    if (req.files) {
+    if (req.files && Object.keys(req.files).length > 0) {
       const uploadedFiles = {};
       Object.keys(req.files).forEach((key) => {
         uploadedFiles[key] = {
@@ -138,11 +139,13 @@ const updateCours = async (req, res) => {
       // Supprimer l'ancien fichier
       const resourceType = cours.file.type === "pdf" ? "raw" : "video";
       await deleteFile(cours.file.publicId, resourceType);
+
       cours.file = uploadedFiles.file || cours.file;
     } else {
       cours.file = cours.file;
     }
     // Mettre à jour les champs
+
     (cours.title = title || cours.title),
       (cours.description = description || cours.description),
       (cours.level = level || cours.level),
