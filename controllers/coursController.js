@@ -1,9 +1,9 @@
 const Cours = require("../models/coursModel");
-
+const cloudinary = require("cloudinary").v2;
 // @desc    Obtenir tous les cours
 // @route   GET /api/cours
 // @access  Public
-const getAllCours = async (req, res, next) => {
+const getAllCours = async (req, res) => {
   try {
     // Paramètres de filtrage et pagination
     const { level, year, semester, track, page = 1, limit = 10 } = req.query;
@@ -28,7 +28,8 @@ const getAllCours = async (req, res, next) => {
       currentPage: page,
     });
   } catch (error) {
-    next(error);
+    console.error("Erreur lors des cours :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
   }
 };
 // @desc    Créer un nouveau cours
@@ -45,7 +46,7 @@ const createCours = async (req, res) => {
     uploadedFiles[key] = {
       url: req.files[key][0].path,
       publicId: req.files[key][0].filename,
-      type: req.files[key][0].mimetype.startsWith("image/") ? "image" : "pdf",
+      type: req.files[key][0].mimetype.startsWith("video/") ? "video" : "pdf",
     };
   });
   try {
@@ -69,7 +70,98 @@ const createCours = async (req, res) => {
   }
 };
 
+// Supprimer un fichier de cloudinary
+const deleteFile = async (publicId, type) => {
+  try {
+    await cloudinary.uploader.destroy(publicId, {
+      resource_type: type,
+    });
+    // return { message: "Fichier supprimé avec succès" };
+  } catch (error) {
+    console.error("Erreur lors de la suppression sur Cloudinary:", error);
+    // return res
+    //   .status(500)
+    //   .json({ message: "Une erreur interne s'est produite." });
+  }
+};
+
+// @desc    Supprimer un cours
+// @route   DELETE /api/cours/:id
+// @access  Private
+const deleteCours = async (req, res) => {
+  try {
+    const cours = await Cours.findById(req.params.id);
+    // console.log(cours);
+    if (!cours) {
+      res.status(404);
+      throw new Error("Cours non trouvé");
+    }
+    // Supprimer le fichier de Cloudinary
+    const resourceType = cours.file.type === "pdf" ? "raw" : "video";
+    await deleteFile(cours.file.publicId, resourceType);
+    // Supprimer le document
+    await Cours.deleteOne({ _id: req.params.id });
+
+    res.status(200).json({ message: "Cours supprimé avec succès" });
+  } catch (error) {
+    console.error("Erreur lors des cours :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
+
+// @desc    Mettre à jour un cours
+// @route   PUT /api/cours/:id
+// @access  Private
+const updateCours = async (req, res) => {
+  try {
+    const { title, description, level, year, semester, track } = req.body;
+
+    // Vérifier si le cours existe
+    const cours = await Cours.findById(req.params.id);
+    if (!cours) {
+      res.status(404);
+      throw new Error("Cours non trouvé");
+    }
+
+    // Gérer la mise à jour du fichier si un nouveau est fourni
+    if (req.files) {
+      const uploadedFiles = {};
+      Object.keys(req.files).forEach((key) => {
+        uploadedFiles[key] = {
+          url: req.files[key][0].path,
+          publicId: req.files[key][0].filename,
+          type: req.files[key][0].mimetype.startsWith("video/")
+            ? "video"
+            : "pdf",
+        };
+      });
+      // Supprimer l'ancien fichier
+      const resourceType = cours.file.type === "pdf" ? "raw" : "video";
+      await deleteFile(cours.file.publicId, resourceType);
+      cours.file = uploadedFiles.file || cours.file;
+    } else {
+      cours.file = cours.file;
+    }
+    // Mettre à jour les champs
+    (cours.title = title || cours.title),
+      (cours.description = description || cours.description),
+      (cours.level = level || cours.level),
+      (cours.year = year || cours.year),
+      (cours.semester = semester || cours.semester),
+      (cours.track = track || cours.track);
+    // Mettre à jour le document
+    await cours.save();
+
+    res.status(200).json(cours);
+  } catch (error) {
+    console.error("Erreur lors des cours :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
+
 module.exports = {
   createCours,
   getAllCours,
+  deleteCours,
+  updateCours,
 };

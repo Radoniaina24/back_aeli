@@ -1,6 +1,11 @@
 const express = require("express");
 const routerCours = express.Router();
-const { getAllCours, createCours } = require("../controllers/coursController");
+const {
+  getAllCours,
+  createCours,
+  deleteCours,
+  updateCours,
+} = require("../controllers/coursController");
 const checkRole = require("../middlewares/checkRole");
 const { uploadFileCours } = require("../utils/cloudinary");
 const isLoggedIn = require("../middlewares/isLoggedIn");
@@ -12,10 +17,15 @@ routerCours.post(
   uploadFileCours,
   createCours
 );
-// router.put("/:id", upload.single("cv"), updateCours);
-
 routerCours.get("/", getAllCours);
+routerCours.put(
+  "/:id",
+  isLoggedIn,
+  uploadFileCours,
+  checkRole(["super_admin"]),
+  updateCours
+);
 // router.get("/:id", getCoursById);
-// router.delete("/:id", deleteCours);
+routerCours.delete("/:id", isLoggedIn, checkRole(["super_admin"]), deleteCours);
 
 module.exports = routerCours;
