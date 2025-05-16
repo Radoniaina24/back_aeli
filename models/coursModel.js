@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const courseSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    description: String,
+    description: { type: String, required: true },
     level: { type: String, enum: ["Licence", "Master"], required: true },
     year: {
       type: String,
